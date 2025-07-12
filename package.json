@@ -1,0 +1,38 @@
+{
+  "name": "renewable-energy-optimizer",
+  "version": "1.0.0",
+  "description": "A full-stack MERN application for optimizing renewable energy consumption in retail businesses",
+  "main": "index.js",
+  "scripts": {
+    "dev": "concurrently \"npm run server:dev\" \"npm run client:dev\"",
+    "start": "concurrently \"npm run server:start\" \"npm run client:start\"",
+    "server:dev": "cd server && npm run dev",
+    "server:start": "cd server && npm start",
+    "client:dev": "cd client && npm start",
+    "client:start": "cd client && npm start",
+    "client:build": "cd client && npm run build",
+    "seed": "cd server && npm run seed",
+    "install:all": "npm install && cd server && npm install && cd ../client && npm install",
+    "build": "cd client && npm run build"
+  },
+  "keywords": [
+    "renewable-energy",
+    "optimization",
+    "mern-stack",
+    "energy-management",
+    "sustainability",
+    "react",
+    "node.js",
+    "mongodb",
+    "express"
+  ],
+  "author": "",
+  "license": "MIT",
+  "devDependencies": {
+    "concurrently": "^7.6.0"
+  },
+  "engines": {
+    "node": ">=16.0.0",
+    "npm": ">=8.0.0"
+  }
+}
