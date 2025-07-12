@@ -10,7 +10,7 @@ const {
   exportEnergyData,
   bulkImportEnergyUsage
 } = require('../controllers/energyController');
-const { authenticate, authorizeOwnerOrAdmin } = require('../middleware/auth');
+const { authenticate, authorize } = require('../middleware/auth');
 
 // All routes require authentication
 router.use(authenticate);

@@ -37,7 +37,7 @@ const userSchema = new mongoose.Schema({
   },
   businessType: {
     type: String,
-    enum: ['grocery', 'clothing', 'electronics', 'restaurant', 'pharmacy', 'other'],
+    enum: ['grocery', 'clothing', 'electronics', 'restaurant', 'pharmacy', 'retail', 'other'],
     required: function() {
       return this.role === 'retailer';
     }

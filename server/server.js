@@ -19,51 +19,29 @@ app.use(express.urlencoded({ extended: true, limit: '10mb' }));
 app.get('/api/health', (req, res) => {
   res.status(200).json({
     status: 'success',
-    message: 'Server is healthy',
+    message: 'Renewable Energy Optimizer API is running',
     timestamp: new Date().toISOString()
   });
 });
 
-// Import and test auth routes one by one
-console.log('Loading auth routes...');
-try {
-  const authRoutes = require('./routes/authRoutes');
-  app.use('/api/auth', authRoutes);
-  console.log('✅ Auth routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading auth routes:', error.message);
-  process.exit(1);
-}
+// API routes
+const authRoutes = require('./routes/authRoutes');
+const energyRoutes = require('./routes/energyRoutes');
+const recommendationRoutes = require('./routes/recommendationRoutes');
+const userRoutes = require('./routes/userRoutes');
 
-console.log('Loading energy routes...');
-try {
-  const energyRoutes = require('./routes/energyRoutes');
-  app.use('/api/energy', energyRoutes);
-  console.log('✅ Energy routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading energy routes:', error.message);
-  process.exit(1);
-}
+app.use('/api/auth', authRoutes);
+app.use('/api/energy', energyRoutes);
+app.use('/api/recommendations', recommendationRoutes);
+app.use('/api/users', userRoutes);
 
-console.log('Loading recommendation routes...');
-try {
-  const recommendationRoutes = require('./routes/recommendationRoutes');
-  app.use('/api/recommendations', recommendationRoutes);
-  console.log('✅ Recommendation routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading recommendation routes:', error.message);
-  process.exit(1);
-}
-
-console.log('Loading user routes...');
-try {
-  const userRoutes = require('./routes/userRoutes');
-  app.use('/api/users', userRoutes);
-  console.log('✅ User routes loaded successfully');
-} catch (error) {
-  console.error('❌ Error loading user routes:', error.message);
-  process.exit(1);
-}
+// Catch-all route for undefined endpoints
+app.all('*', (req, res) => {
+  res.status(404).json({
+    status: 'error',
+    message: `Route ${req.originalUrl} not found`
+  });
+});
 
 const PORT = process.env.PORT || 5000;
 
