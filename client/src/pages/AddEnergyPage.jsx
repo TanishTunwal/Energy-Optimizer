@@ -39,6 +39,34 @@ const AddEnergyPage = () => {
       const totalConsumption = parseFloat(formData.totalConsumption) || (renewableConsumption + nonRenewableConsumption);
       const totalCost = parseFloat(formData.totalCost);
       
+      // Client-side validation
+      if (!formData.date) {
+        setAlert({
+          type: 'error',
+          message: 'Please select a date'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (totalConsumption <= 0) {
+        setAlert({
+          type: 'error',
+          message: 'Total consumption must be greater than 0'
+        });
+        setLoading(false);
+        return;
+      }
+
+      if (isNaN(totalCost) || totalCost < 0) {
+        setAlert({
+          type: 'error',
+          message: 'Please enter a valid total cost'
+        });
+        setLoading(false);
+        return;
+      }
+      
       const data = {
         date: formData.date,
         totalConsumption,
@@ -76,7 +104,7 @@ const AddEnergyPage = () => {
       console.error('Error adding energy data:', error);
       setAlert({
         type: 'error',
-        message: error.response?.data?.message || 'Failed to add energy data'
+        message: error.response?.data?.message || 'Failed to add energy data. Please check your input and try again.'
       });
     } finally {
       setLoading(false);
