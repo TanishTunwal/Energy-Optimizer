@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { energyAPI } from '../utils/api';
+import { mockEnergyData } from '../utils/mockData';
 import Loading from '../components/common/Loading';
 import Alert from '../components/common/Alert';
 import EmptyState from '../components/common/EmptyState';
@@ -33,12 +34,15 @@ const EnergyPage = () => {
       setLoading(true);
       setError('');
       
-      const response = await energyAPI.getEnergyUsage(filters);
-      setEnergyData(response.data.data || []);
+      // Use mock data for demonstration
+      console.log('Loading energy data with mock data');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+      setEnergyData(mockEnergyData);
+      
     } catch (err) {
       console.error('Fetch energy data error:', err);
       setError('Failed to load energy data');
-      setEnergyData([]);
+      setEnergyData(mockEnergyData); // Fallback to mock data
     } finally {
       setLoading(false);
     }

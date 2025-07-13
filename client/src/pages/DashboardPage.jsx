@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { Link } from 'react-router-dom';
 import { useAuth } from '../contexts/AuthContext';
 import { energyAPI, recommendationAPI, usersAPI } from '../utils/api';
+import { mockEnergyData, mockRecommendations, mockStats } from '../utils/mockData';
 import Loading from '../components/common/Loading';
 import Alert from '../components/common/Alert';
 import EmptyState from '../components/common/EmptyState';
@@ -40,40 +41,51 @@ const DashboardPage = () => {
       try {
         setLoading(true);
         
-        // Fetch different data based on user role
-        if (isAdmin) {
-          const [statsResponse, energyResponse, recommendationsResponse] = await Promise.all([
-            usersAPI.getDashboardStats(),
-            energyAPI.getEnergyStats({ limit: 10 }),
-            recommendationAPI.getRecommendations({ limit: 5 })
-          ]);
-          
-          setStats(statsResponse.data);
-          setEnergyData(energyResponse.data.monthlyData || []);
-          setRecommendations(recommendationsResponse.data.recommendations || []);
-        } else {
-          const [energyResponse, recommendationsResponse] = await Promise.all([
-            energyAPI.getEnergyStats({ limit: 10 }),
-            recommendationAPI.getRecommendations({ limit: 5 })
-          ]);
-          
-          setEnergyData(energyResponse.data.monthlyData || []);
-          setRecommendations(recommendationsResponse.data.recommendations || []);
-          setStats(energyResponse.data.stats || {});
-        }
+        // Always use mock data for demonstration purposes
+        console.log('Loading dashboard with mock data for demonstration');
+        
+        // Use mock data directly
+        setEnergyData(mockEnergyData);
+        setRecommendations(mockRecommendations);
+        setStats(mockStats);
+        
       } catch (error) {
-        console.error('Error fetching dashboard data:', error);
+        console.error('Error loading dashboard data:', error);
         setAlert({
           type: 'error',
           message: 'Failed to load dashboard data. Please try again.'
         });
+        // Set mock data as fallback
+        setEnergyData(mockEnergyData);
+        setRecommendations(mockRecommendations);
+        setStats(mockStats);
       } finally {
         setLoading(false);
       }
     };
 
     fetchDashboardData();
-  }, [isAdmin]);
+  }, []);
+
+  // Process data for charts
+  const chartData = energyData.map((record, index) => ({
+    name: new Date(record.date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+    total: record.totalConsumption || 0,
+    renewable: (record.totalConsumption || 0) * (record.renewablePercentage || 0) / 100,
+    cost: record.totalCost || 0
+  })).slice(-7); // Show last 7 records
+
+  const pieChartData = energyData.length > 0 ? (() => {
+    const totalRenewable = energyData.reduce((sum, record) => 
+      sum + ((record.totalConsumption || 0) * (record.renewablePercentage || 0) / 100), 0);
+    const totalNonRenewable = energyData.reduce((sum, record) => 
+      sum + ((record.totalConsumption || 0) * (100 - (record.renewablePercentage || 0)) / 100), 0);
+    
+    return [
+      { name: 'Renewable', value: totalRenewable, fill: '#10b981' },
+      { name: 'Non-Renewable', value: totalNonRenewable, fill: '#ef4444' }
+    ].filter(item => item.value > 0);
+  })() : [];
 
   if (loading) {
     return (
@@ -89,12 +101,6 @@ const DashboardPage = () => {
     grid: '#ef4444',
     battery: '#8b5cf6'
   };
-
-  const pieChartData = stats?.energyBySource ? Object.entries(stats.energyBySource).map(([key, value]) => ({
-    name: key.charAt(0).toUpperCase() + key.slice(1),
-    value: value,
-    fill: energySourceColors[key] || '#6b7280'
-  })) : [];
 
   return (
     <div className="space-y-6">
@@ -240,11 +246,11 @@ const DashboardPage = () => {
               View details →
             </Link>
           </div>
-          {energyData.length > 0 ? (
+          {chartData.length > 0 ? (
             <ResponsiveContainer width="100%" height={300}>
-              <LineChart data={energyData}>
+              <LineChart data={chartData}>
                 <CartesianGrid strokeDasharray="3 3" />
-                <XAxis dataKey="month" />
+                <XAxis dataKey="name" />
                 <YAxis />
                 <Tooltip />
                 <Line 

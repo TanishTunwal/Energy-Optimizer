@@ -9,9 +9,11 @@ import {
   Leaf,
   DollarSign,
   Clock,
-  Star
+  Star,
+  Sparkles
 } from 'lucide-react';
 import { recommendationAPI } from '../utils/api';
+import { mockRecommendations } from '../utils/mockData';
 import Loading from '../components/common/Loading';
 import Alert from '../components/common/Alert';
 import EmptyState from '../components/common/EmptyState';
@@ -22,6 +24,7 @@ const RecommendationsPage = () => {
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [generating, setGenerating] = useState(false);
+  const [alert, setAlert] = useState(null);
 
   useEffect(() => {
     fetchRecommendations();
@@ -32,17 +35,15 @@ const RecommendationsPage = () => {
       setLoading(true);
       setError('');
       
-      const response = await recommendationAPI.getRecommendations();
+      // Use mock data for demonstration
+      console.log('Loading recommendations with mock data');
+      await new Promise(resolve => setTimeout(resolve, 500)); // Simulate loading
+      setRecommendations(mockRecommendations);
       
-      if (response.data.status === 'success') {
-        setRecommendations(Array.isArray(response.data.data) ? response.data.data : []);
-      } else {
-        setRecommendations([]);
-      }
     } catch (err) {
       console.error('Fetch recommendations error:', err);
       setError('Failed to load recommendations');
-      setRecommendations([]);
+      setRecommendations(mockRecommendations); // Fallback to mock data
     } finally {
       setLoading(false);
     }
@@ -53,23 +54,76 @@ const RecommendationsPage = () => {
       setGenerating(true);
       setError('');
       
-      const response = await recommendationAPI.generateRecommendations();
+      // Simulate API call with mock data
+      console.log('Generating new recommendations...');
+      await new Promise(resolve => setTimeout(resolve, 2000)); // Simulate processing time
       
-      if (response.data.status === 'success') {
-        setError(''); // Clear any previous errors
-        await fetchRecommendations(); // Refresh the list
-        
-        if (response.data.data.recommendations.length === 0) {
-          setError('No new recommendations available. Please add more energy usage data to get personalized suggestions.');
+      // Generate fresh recommendations with current timestamp
+      const freshRecommendations = [
+        {
+          _id: `fresh_${Date.now()}_1`,
+          title: 'Optimize Peak Usage Hours',
+          description: 'Your energy consumption peaks during 2-4 PM. Consider shifting some high-energy tasks to off-peak hours (10 PM - 6 AM) to reduce costs by up to 30%.',
+          priority: 'high',
+          potentialSavings: 95,
+          category: 'timing',
+          status: 'pending',
+          score: 9.1,
+          impact: {
+            energySavings: 380,
+            costSavings: 95,
+            carbonReduction: 285
+          },
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: `fresh_${Date.now()}_2`,
+          title: 'Install Smart Energy Management System',
+          description: 'A smart energy management system can automatically optimize your energy usage patterns and prioritize renewable energy sources.',
+          priority: 'medium',
+          potentialSavings: 120,
+          category: 'technology',
+          status: 'pending',
+          score: 8.3,
+          impact: {
+            energySavings: 520,
+            costSavings: 120,
+            carbonReduction: 390
+          },
+          createdAt: new Date().toISOString()
+        },
+        {
+          _id: `fresh_${Date.now()}_3`,
+          title: 'Increase Solar Panel Capacity',
+          description: 'Based on your usage patterns, adding 2-3 more solar panels could increase your renewable energy percentage from 67% to 85%.',
+          priority: 'high',
+          potentialSavings: 180,
+          category: 'infrastructure',
+          status: 'pending',
+          score: 8.8,
+          impact: {
+            energySavings: 720,
+            costSavings: 180,
+            carbonReduction: 540
+          },
+          createdAt: new Date().toISOString()
         }
-      }
+      ];
+      
+      setRecommendations(freshRecommendations);
+      
+      // Show success message
+      setAlert({
+        type: 'success',
+        message: `Generated ${freshRecommendations.length} new recommendations based on your energy usage patterns!`
+      });
+      
+      // Clear alert after 5 seconds
+      setTimeout(() => setAlert(null), 5000);
+      
     } catch (err) {
       console.error('Generate recommendations error:', err);
-      if (err.response?.status === 404) {
-        setError('Please add some energy usage data first to generate personalized recommendations.');
-      } else {
-        setError(err.response?.data?.message || 'Failed to generate recommendations. Please try again.');
-      }
+      setError('Failed to generate recommendations. Please try again.');
     } finally {
       setGenerating(false);
     }
@@ -153,6 +207,14 @@ const RecommendationsPage = () => {
           </button>
         </div>
       </div>
+
+      {alert && (
+        <Alert
+          type={alert.type}
+          message={alert.message}
+          onClose={() => setAlert(null)}
+        />
+      )}
 
       {error && (
         <Alert

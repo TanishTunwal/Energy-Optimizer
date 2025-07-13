@@ -34,6 +34,35 @@ const LoginPage = () => {
     setAlert(null);
 
     try {
+      // Demo mode: Allow quick login with demo credentials
+      if (formData.email === 'demo@test.com' && formData.password === 'demo123') {
+        // Create a mock user for demo purposes
+        const mockUser = {
+          _id: 'demo_user_id',
+          name: 'Demo User',
+          email: 'demo@test.com',
+          role: 'retailer',
+          businessName: 'Demo Business',
+          businessType: 'retail'
+        };
+        
+        // Store mock data
+        localStorage.setItem('authToken', 'demo_token_' + Date.now());
+        localStorage.setItem('user', JSON.stringify(mockUser));
+        
+        setAlert({
+          type: 'success',
+          message: '✅ Demo login successful! Redirecting...'
+        });
+        
+        setTimeout(() => {
+          window.location.href = '/dashboard';
+        }, 1000);
+        
+        setLoading(false);
+        return;
+      }
+      
       const result = await login(formData.email, formData.password);
       
       if (result.success) {
@@ -45,9 +74,10 @@ const LoginPage = () => {
         });
       }
     } catch (error) {
+      console.error('Login error:', error);
       setAlert({
         type: 'error',
-        message: 'An unexpected error occurred. Please try again.'
+        message: 'Login failed. Try demo credentials: demo@test.com / demo123'
       });
     } finally {
       setLoading(false);
@@ -145,6 +175,34 @@ const LoginPage = () => {
               </button>
             </div>
           </form>
+
+          <div className="mt-6">
+            <div className="relative">
+              <div className="absolute inset-0 flex items-center">
+                <div className="w-full border-t border-gray-300" />
+              </div>
+              <div className="relative flex justify-center text-sm">
+                <span className="px-2 bg-white text-gray-500">Demo Access</span>
+              </div>
+            </div>
+            
+            <div className="mt-4 p-4 bg-blue-50 border border-blue-200 rounded-lg">
+              <h4 className="text-sm font-medium text-blue-900 mb-2">Quick Demo Login</h4>
+              <div className="text-sm text-blue-700 space-y-1">
+                <p><strong>Email:</strong> demo@test.com</p>
+                <p><strong>Password:</strong> demo123</p>
+              </div>
+              <button
+                type="button"
+                onClick={() => {
+                  setFormData({ email: 'demo@test.com', password: 'demo123' });
+                }}
+                className="mt-2 text-xs text-blue-600 hover:text-blue-800 underline"
+              >
+                Fill demo credentials
+              </button>
+            </div>
+          </div>
 
           <div className="mt-6">
             <div className="text-center">

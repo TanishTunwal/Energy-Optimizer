@@ -11,6 +11,7 @@ import AddEnergyPage from './pages/AddEnergyPage';
 import RecommendationsPage from './pages/RecommendationsPage';
 import SettingsPage from './pages/SettingsPage';
 import AdminUsersPage from './pages/AdminUsersPage';
+import DemoPageNew from './pages/DemoPageNew';
 
 function App() {
   return (
@@ -19,6 +20,7 @@ function App() {
         <Routes>
           <Route path="/login" element={<LoginPage />} />
           <Route path="/register" element={<RegisterPage />} />
+          <Route path="/demo" element={<DemoPageNew />} />
           <Route path="/" element={<Navigate to="/dashboard" replace />} />
           <Route
             path="/*"
