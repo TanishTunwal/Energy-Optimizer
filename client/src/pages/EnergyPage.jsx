@@ -70,13 +70,18 @@ const EnergyPage = () => {
   };
 
   const deleteEnergyRecord = async (id) => {
-    if (!confirm('Are you sure you want to delete this energy record?')) {
+    if (!window.confirm('Are you sure you want to delete this energy record?')) {
       return;
     }
 
     try {
-      await energyAPI.deleteEnergyUsage(id);
+      // Demo mode: Just remove from local state
       setEnergyData(prev => prev.filter(item => item._id !== id));
+      
+      // Show success message
+      setError('');
+      // You could add a success alert here if needed
+      
     } catch (err) {
       console.error('Delete energy record error:', err);
       setError('Failed to delete energy record');
@@ -85,14 +90,25 @@ const EnergyPage = () => {
 
   const exportData = async () => {
     try {
-      const response = await energyAPI.exportEnergyData(filters);
-      const url = window.URL.createObjectURL(new Blob([response.data]));
+      // Demo mode: Create CSV from current data
+      const csvHeader = 'Date,Total Consumption (kWh),Total Cost ($),Renewable Percentage (%),Solar Consumption (kWh),Grid Consumption (kWh)\n';
+      const csvContent = energyData.map(record => {
+        const solarConsumption = record.energyData?.renewable?.solar?.consumption || 0;
+        const gridConsumption = record.energyData?.nonRenewable?.grid?.consumption || 0;
+        return `${record.date},${record.totalConsumption},${record.totalCost},${record.renewablePercentage},${solarConsumption},${gridConsumption}`;
+      }).join('\n');
+      
+      const csvData = csvHeader + csvContent;
+      const blob = new Blob([csvData], { type: 'text/csv' });
+      const url = window.URL.createObjectURL(blob);
       const link = document.createElement('a');
       link.href = url;
-      link.setAttribute('download', 'energy-data.csv');
+      link.setAttribute('download', `energy-data-${new Date().toISOString().split('T')[0]}.csv`);
       document.body.appendChild(link);
       link.click();
       link.remove();
+      window.URL.revokeObjectURL(url);
+      
     } catch (err) {
       console.error('Export data error:', err);
       setError('Failed to export data');
@@ -238,16 +254,16 @@ const EnergyPage = () => {
                     Date
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Source
+                    Energy Sources
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Usage (kWh)
+                    Total Consumption
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Cost ($)
+                    Total Cost
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
-                    Carbon Footprint (kg CO₂)
+                    Carbon Footprint (estimated)
                   </th>
                   <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">
                     Actions
@@ -262,20 +278,27 @@ const EnergyPage = () => {
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap">
                       <div className="flex items-center space-x-2">
-                        {getSourceIcon(record.energySource)}
-                        <span className="text-sm text-gray-900 capitalize">
-                          {record.energySource}
+                        <div className="flex space-x-1">
+                          {record.energyData?.renewable?.solar && (
+                            <div className="h-5 w-5 bg-yellow-400 rounded-full" title="Solar"></div>
+                          )}
+                          {record.energyData?.nonRenewable?.grid && (
+                            <div className="h-5 w-5 bg-red-400 rounded-full" title="Grid"></div>
+                          )}
+                        </div>
+                        <span className="text-sm text-gray-900">
+                          Mixed ({record.renewablePercentage}% renewable)
                         </span>
                       </div>
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record.usage.toFixed(2)}
+                      {record.totalConsumption || 0} kWh
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      ${record.cost.toFixed(2)}
+                      ${record.totalCost || 0}
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm text-gray-900">
-                      {record.carbonFootprint.toFixed(2)}
+                      {((record.totalConsumption || 0) * 0.5).toFixed(2)} kg CO₂
                     </td>
                     <td className="px-6 py-4 whitespace-nowrap text-sm font-medium space-x-2">
                       <button
